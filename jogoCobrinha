@@ -1,10 +1,20 @@
 from random import randint
-import pygame
+import pygame, sys
 from pygame.locals import *
 
 
 # aqui estão todos os subprogramas necessários pro projeto
 # desenhando as grades
+def gameOver():
+    texto = 'FIM DE JOGO!'
+    localizaTexto = (130, 400/2)
+    fonteDerrota = pygame.font.Font('freesansbold.ttf', 20)
+    printarTexto(texto, localizaTexto, fonteDerrota)
+    pygame.display.update()
+    pygame.time.wait(2500)
+    return None
+
+
 def desenharGrade():
     for x in range(0, 400, 10):  # linhas verticais
         pygame.draw.line(tela, (20, 20, 20), (x, 0), (x, 400))
@@ -13,15 +23,19 @@ def desenharGrade():
     return None
 
 
+def desenharBloco():
+    pygame.draw.line(tela, (255, 255, 255), (10, 10), (10, 390))
+    pygame.draw.line(tela, (255, 255, 255), (390, 10), (390, 390))
+    pygame.draw.line(tela, (255, 255, 255), (10, 10), (390, 10))
+    pygame.draw.line(tela, (255, 255, 255), (10, 390), (390, 390))
+    return None
+
+
 # colocando os pontos na tela
-def printarPontos(pontos, fonte):
-    fontePontos = fonte.render('Pontuação J1: %s' % str(pontos), True, (255, 255, 255))
-    pontosRect = fontePontos.get_rect()
-    tela.blit(fontePontos, pontosRect)
-    mensagem = fonte.render('Pressione "espaço" para adicionar um novo jogador', True, (255, 255, 255))
-    mensagemRect = mensagem.get_rect()
-    mensagemRect.bottomleft = (10, 400 - 10)
-    tela.blit(mensagem, mensagemRect)
+def printarTexto(texto, localizacao, fonte):
+    fonteTexto = fonte.render(str(texto), True, (255, 255, 255))
+    textoRect = localizacao
+    tela.blit(fonteTexto, textoRect)
     return None
 
 
@@ -38,7 +52,9 @@ def movimentoCobra(cobra, dir):
     # checando se a cobra bateu nela mesma
     for i in range(1, len(cobra) - 1):
         if cobra[0][0] == cobra[i][0] and cobra[0][1] == cobra[i][1]:
+            gameOver()
             pygame.quit()
+            sys.exit()
     for i in range(len(cobra) - 1, 0, -1):
         cobra[i] = (cobra[i - 1][0], cobra[i - 1][1])
 
@@ -48,21 +64,20 @@ def movimentoCobra(cobra, dir):
 # função para trocar direção da cobra evitando colisões com ela mesma.
 def seBaterNaParede(cobra, dir):
     if cobraBateu(cobra):
-        cobra.sort(reverse=True)
         novaDirecao = inverteDirecao(dir)
     return novaDirecao
 
 
-# isso troca a direção da cobra
+# isso troca a direção da cobra em sentido horário quando ela bate na parede
 def inverteDirecao(dir):
     if dir == UP:
-        return DOWN
-    elif dir == RIGHT:
-        return LEFT
-    elif dir == DOWN:
-        return UP
-    elif dir == LEFT:
         return RIGHT
+    elif dir == RIGHT:
+        return DOWN
+    elif dir == DOWN:
+        return LEFT
+    elif dir == LEFT:
+        return UP
 
 
 # estipulando o "campo" do jogo
@@ -79,7 +94,9 @@ def colisao(c1, c2):
 
 # função pras paredes
 def cobraBateu(cobra):
-    if cobra[0][0] == 390 or cobra[0][1] == 390 or cobra[0][0] == 0 or cobra[0][1] == 0:
+    if cobra[0][0] == 380 or cobra[0][1] == 380:
+        return True
+    elif cobra[0][0] == 10 or cobra[0][1] == 10:
         return True
 
 
@@ -89,53 +106,13 @@ def cobraForaDoMapa(cobra):
         return True
 
 
-# farei os subprogramas da segunda cobra aqui, para não confundir com os códigos acima, ficaria bem desorganizado
-def adicionarNovaCobra(cobra2, peleCobra2, direcao2):
-    pontos2 = 0
-    # o jogo vai gerar outra maçã pra outra cobra, justo né?
-    maca2 = pygame.Surface((10, 10))
-    maca2.fill((255, 203, 219))
-    posicaoMaca2 = aleatorioGrade()
-    while True:
-
-        for event in pygame.event.get():
-            # isso aqui é só pra atribuir as teclas do teclado no joguinho
-            if event.type == KEYDOWN:
-                if event.key == K_w:
-                    direcao2 = UP
-                if event.key == K_d:
-                    direcao2 = RIGHT
-                if event.key == K_s:
-                    direcao2 = DOWN
-                if event.key == K_a:
-                    direcao2 = LEFT
-
-        # isso aqui é pra adicionar mais um pedaço de cobra, apagar a maçã e contar os pontos
-        if colisao(cobra2[0], posicaoMaca2):
-            posicaoMaca2 = aleatorioGrade()
-            cobra2.append((0, 0))
-            pontos2 += 10
-
-        # função de movimentação da cobrinha
-        movimentoCobra(cobra2, direcao2)
-        if cobraBateu(cobra2):
-            direcao2 = seBaterNaParede(cobra2, direcao2)
-        if cobraForaDoMapa(cobra2):  # as vezes o jogo tava bugando, aí eu coloquei só pra ele quitar caso bugasse mesmo
-            pygame.quit()
-            exit()
-
-        for pos2 in cobra2:
-            tela.blit(peleCobra2, pos2)
-            pygame.display.update()
-
-
 # fim dos subprogramas
 
 
 # aqui começa o programa principal
 pygame.init()
 tela = pygame.display.set_mode((400, 400))
-pygame.display.set_caption('Cobrinha do Python pra JG')
+pygame.display.set_caption('Cobrinha do Python')
 
 UP = 0
 RIGHT = 1
@@ -150,7 +127,7 @@ direcao = LEFT
 relogio = pygame.time.Clock()
 
 # definindo fonte do jogo e pontuação
-fonte = pygame.font.Font('freesansbold.ttf', 12)
+fonte = pygame.font.Font('freesansbold.ttf', 13)
 pontos = 0
 
 # aqui que fica a maçã do jogo
@@ -160,31 +137,23 @@ posicaoMaca = aleatorioGrade()
 
 # aqui que o jogo realmente começa
 while True:
-    relogio.tick(20)  # escolhi o fps como 20 ~ 24 pra reduzir as "piscadas" que o jogo dá
+    relogio.tick(15)  # fps do jogo, vocês podem definir como preferirem
 
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
-            exit()
+            sys.exit()
 
         # isso aqui é só pra atribuir as teclas do teclado no joguinho
         if event.type == KEYDOWN:
-            if event.key == K_UP:
+            if event.key == K_UP and direcao != DOWN:
                 direcao = UP
-            if event.key == K_RIGHT:
+            if event.key == K_RIGHT and direcao != LEFT:
                 direcao = RIGHT
-            if event.key == K_DOWN:
+            if event.key == K_DOWN and direcao != UP:
                 direcao = DOWN
-            if event.key == K_LEFT:
+            if event.key == K_LEFT and direcao != RIGHT:
                 direcao = LEFT
-
-            # caso o jogador 2 aperte "espaço", uma nova cobra aparecerá
-            if event.key == K_SPACE:
-                cobra1 = [(370, 390), (380, 390), (390, 390)]
-                peleCobra2 = pygame.Surface((10, 10))
-                peleCobra2.fill((0, 0, 220))
-                direcao2 = LEFT
-                adicionarNovaCobra(cobra1, peleCobra2, direcao2)
 
     # isso aqui é pra adicionar mais um pedaço de cobra, apagar a maçã e contar os pontos
     if colisao(cobra[0], posicaoMaca):
@@ -197,17 +166,28 @@ while True:
     if cobraBateu(cobra):
         direcao = seBaterNaParede(cobra, direcao)
     if cobraForaDoMapa(cobra):  # as vezes o jogo tava bugando, aí eu coloquei só pra ele quitar caso bugasse mesmo
+        gameOver()
         pygame.quit()
-        exit()
 
     # definições do ecrã
     tela.fill((0, 0, 0))
+
     tela.blit(maca, posicaoMaca)
     desenharGrade()
-    printarPontos(pontos, fonte)
+    desenharBloco()
+
+    # configurações dos textos do ecrã
+    localizaPontos = (20, 20)
+    textoPontos = ('Score: ' + str(pontos))
+    printarTexto(textoPontos, localizaPontos, fonte)
+
+    tradeMark = 'Desenvolvido por Mairon Azevedo em: 12/12/2019'
+    localizaTM = (15, 400 - 28)
+    fonteTM = pygame.font.Font('freesansbold.ttf', 10)
+    printarTexto(tradeMark, localizaTM, fonteTM)
 
     for pos in cobra:
         tela.blit(peleCobra, pos)
         pygame.display.update()
 
-# Desenvolvido por Mairon Azevedo caso haja cópia, por favor creditar
+# Desenvolvido por Mairon Azevedo em 12/12/2019 em função do estágio na empresa Jovens Gênios
