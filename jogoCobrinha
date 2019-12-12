@@ -6,15 +6,24 @@ from pygame.locals import *
 # aqui estão todos os subprogramas necessários pro projeto
 # desenhando as grades
 def gameOver():
-    texto = 'FIM DE JOGO!'
-    localizaTexto = (130, 400/2)
+    texto = 'GAME OVER'
+    localizaTexto = (130, 400 / 2)
     fonteDerrota = pygame.font.Font('freesansbold.ttf', 20)
     printarTexto(texto, localizaTexto, fonteDerrota)
     pygame.display.update()
     pygame.time.wait(2500)
     return None
 
+def vitoria():
+    texto = 'VOCÊ VENCEU!!'
+    localizaTexto = (130, 400 / 2)
+    fonteVitoria = pygame.font.Font('freesansbold.ttf', 20)
+    printarTexto(texto, localizaTexto, fonteVitoria)
+    pygame.display.update()
+    pygame.time.wait(2500)
+    return None
 
+# grades do fundo do joguinho
 def desenharGrade():
     for x in range(0, 400, 10):  # linhas verticais
         pygame.draw.line(tela, (20, 20, 20), (x, 0), (x, 400))
@@ -22,7 +31,7 @@ def desenharGrade():
         pygame.draw.line(tela, (20, 20, 20), (0, y), (400, y))
     return None
 
-
+# bloco externo do jogo
 def desenharBloco():
     pygame.draw.line(tela, (255, 255, 255), (10, 10), (10, 390))
     pygame.draw.line(tela, (255, 255, 255), (390, 10), (390, 390))
@@ -82,8 +91,8 @@ def inverteDirecao(dir):
 
 # estipulando o "campo" do jogo
 def aleatorioGrade():
-    x = randint(10, 390)
-    y = randint(10, 390)
+    x = randint(20, 380)
+    y = randint(20, 380)
     return ((x // 10) * 10, (y // 10) * 10)
 
 
@@ -185,6 +194,10 @@ while True:
     localizaTM = (15, 400 - 28)
     fonteTM = pygame.font.Font('freesansbold.ttf', 10)
     printarTexto(tradeMark, localizaTM, fonteTM)
+
+    # o jogo é uma matriz 38 x 38 e cada maçã vale 10 pontos, logo 33440 é a pontuação máxima (se estiver disposto a testar rs)
+    if pontos == 33440:
+        vitoria()
 
     for pos in cobra:
         tela.blit(peleCobra, pos)
