@@ -121,7 +121,7 @@ def cobraForaDoMapa(cobra):
 # aqui começa o programa principal
 pygame.init()
 tela = pygame.display.set_mode((400, 400))
-pygame.display.set_caption('Cobrinha do Python')
+pygame.display.set_caption('Cobrinha do Python (Mark-I)')
 
 UP = 0
 RIGHT = 1
