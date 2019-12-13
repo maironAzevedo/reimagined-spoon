@@ -1,0 +1,194 @@
+from random import randint
+import pygame, sys, time
+from pygame.locals import *
+
+
+# aqui estão todos os subprogramas necessários pro projeto
+
+# ultima função executada no jogo, a de derrota
+def gameOver():
+    # limpando a tela
+    time.sleep(0.5)
+    tela.fill((0, 0, 0))
+    pygame.display.update()
+
+    # fazendo o texto da derrota
+    font = pygame.font.Font('freesansbold.ttf', 50)
+    texto = font.render('GAME OVER', True, (255, 255, 255))
+    textoRect = texto.get_rect()
+    textoRect.center = (400 / 2, 400 / 2)
+
+    # mostrando na tela
+    tela.blit(texto, textoRect)
+    pygame.display.update()
+    pygame.time.wait(2500)
+    pygame.quit()
+    sys.exit()
+
+    return None
+
+# é raro acontecer... mas vai que né???
+def vitoria():
+    texto = 'VOCÊ VENCEU!!'
+    localizaTexto = (130,
+                     400 / 2)  # eu mesmo confesso que: não tive capacidade de descobrir se essa função realmente funciona, o jogo é dificil demais kkkkkkkkk
+    fonteVitoria = pygame.font.Font('freesansbold.ttf', 20)
+    printarTexto(texto, localizaTexto, fonteVitoria)
+    pygame.display.update()
+    pygame.time.wait(2500)
+    pygame.quit()
+    return None
+
+# grades do fundo do joguinho
+def desenharGrade():
+    for x in range(0, 400, 10):  # linhas horizontais
+        pygame.draw.line(tela, (20, 20, 20), (x, 0), (x, 400))
+    for y in range(0, 400, 10):  # linhas verticais
+        pygame.draw.line(tela, (20, 20, 20), (0, y), (400, y))
+    return None
+
+# função pra por qualquer texto que seja na tela
+def printarTexto(texto, localizacao, fonte):
+    fonteTexto = fonte.render(str(texto), True, (255, 255, 255))
+    textoRect = localizacao
+    tela.blit(fonteTexto, textoRect)
+    return None
+
+# definindo direções da cobra
+def movimentoCobra(cobra, dir):
+    if dir == UP:
+        cobra[0] = (cobra[0][0], cobra[0][1] - 10)
+    if direcao == RIGHT:
+        cobra[0] = (cobra[0][0] + 10, cobra[0][1])
+    if direcao == DOWN:
+        cobra[0] = (cobra[0][0], cobra[0][1] + 10)
+    if direcao == LEFT:
+        cobra[0] = (cobra[0][0] - 10, cobra[0][1])
+
+    # checando se a cobra bateu nela mesma
+    for i in range(1, len(cobra) - 1):
+        if cobra[0][0] == cobra[i][0] and cobra[0][1] == cobra[i][1]:
+            gameOver()
+
+    # isso aqui faz a segunda bolinha da cobra assumir a posição da primeira e assim sucessivamente
+    for i in range(len(cobra) - 1, 0, -1):
+        cobra[i] = (cobra[i - 1][0], cobra[i - 1][1])
+
+    return None
+
+# função para fazer a cobra aparecer do outro lado quando bater na parede
+def seBaterNaParede(cobra, dir):
+    if cobra[0][0] > 400 and dir == RIGHT:
+        cobra[0] = (-10, cobra[0][1])
+    elif cobra[0][0] < 0 and dir == LEFT:
+        cobra[0] = (400, cobra[0][1])
+    elif cobra[0][1] > 390 and dir == DOWN:
+        cobra[0] = (cobra[0][0], -10)
+    elif cobra[0][1] < 0 and dir == UP:
+        cobra[0] = (cobra[0][0], 400)
+    return None
+
+# gerando uma posição aleatória na matriz (usei pra gerar a maçã)
+def aleatorioGrade():
+    x = randint(20, 380)
+    y = randint(20, 380)
+    return ((x // 10) * 10, (y // 10) * 10)
+
+# testes de colisão
+def colisao(c1, c2):
+    return (c1[0] == c2[0]) and (c1[1] == c2[1])
+
+# retorna verdadeiro se a posição da maçã for igual a qualquer uma das posições da cobra
+def colisaoCobraMaca(cobra, m):
+    for i in range(len(cobra) - 1):
+        if m[0] == cobra[i][0] and m[1] == cobra[0][i]:
+            return True
+        else:
+            return False
+
+# fim dos subprogramas
+
+# aqui começa o programa principal
+pygame.init()
+tela = pygame.display.set_mode((400, 400))
+pygame.display.set_caption('Cobrinha do Python (Mark-II)')
+
+UP = 0
+RIGHT = 1
+DOWN = 2
+LEFT = 3
+
+# definindo o nosso querido protagonista e sua velocidade
+cobra = [(200, 200), (210, 200), (220, 200)]
+peleCobra = pygame.Surface((10, 10))
+peleCobra.fill((0, 0, 255))
+direcao = LEFT
+relogio = pygame.time.Clock()
+
+# definindo fonte do jogo e pontuação
+fonte = pygame.font.Font('freesansbold.ttf', 13)
+pontos = 0
+
+# aqui que fica a maçã do jogo
+maca = pygame.Surface((10, 10))
+maca.fill((255, 0, 0))
+posicaoMaca = aleatorioGrade()
+
+# aqui que o jogo realmente começa
+while True:
+    relogio.tick(15)  # fps do jogo, vocês podem definir como preferirem, se estiver muito rapido eu recomendo um 10
+
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            pygame.quit()
+            sys.exit()
+
+        # isso aqui é só pra atribuir as teclas do teclado no jogo
+        if event.type == KEYDOWN:
+            if event.key == K_UP and direcao != DOWN:
+                direcao = UP
+            if event.key == K_RIGHT and direcao != LEFT:
+                direcao = RIGHT
+            if event.key == K_DOWN and direcao != UP:
+                direcao = DOWN
+            if event.key == K_LEFT and direcao != RIGHT:
+                direcao = LEFT
+
+    # isso aqui é pra adicionar mais um pedaço de cobra, apagar a maçã e contar os pontos
+    if colisao(cobra[0], posicaoMaca):
+        posicaoMaca = aleatorioGrade()
+        if colisaoCobraMaca(cobra, posicaoMaca):  # caso a maçã apareça na cobra, ela vai ser plotada em outro lugar ;)
+            posicaoMaca = aleatorioGrade()
+        cobra.append((0, 0))
+        pontos += 10
+
+    # funções de movimentação da cobrinha
+    movimentoCobra(cobra, direcao)
+    seBaterNaParede(cobra, direcao)
+
+    # definições do ecrã
+    tela.fill((0, 0, 0))
+    desenharGrade()
+
+    # configurações dos textos do ecrã
+    localizaPontos = (20, 20)
+    textoPontos = ('Score: ' + str(pontos))
+    printarTexto(textoPontos, localizaPontos, fonte)
+
+    tradeMark = 'Desenvolvido por Mairon Azevedo em: 13/12/2019 às 03:18 A.M'  # o AM não é de artic monkeys, infelizmente...
+    localizaTM = (15, 400 - 28)
+    fonteTM = pygame.font.Font('freesansbold.ttf', 10)
+    printarTexto(tradeMark, localizaTM, fonteTM)
+
+    # o jogo é uma matriz 38 x 38 e cada maçã vale 10 pontos, logo 33440 é a pontuação máxima (se estiver disposto a testar rs)
+    if pontos == 33440:
+        vitoria()
+
+    # mostrando a maça na tela
+    tela.blit(maca,
+              posicaoMaca)  # botei no fim do codigo pra ficar por cima do score, algumas vezes apareceu em baixo e foi bem incomodo
+    for pos in cobra:
+        tela.blit(peleCobra, pos)
+        pygame.display.update()
+
+# Desenvolvido por Mairon Azevedo em 13/12/2019 em função do estágio na empresa Jovens Gênios
